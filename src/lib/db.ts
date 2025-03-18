@@ -6,12 +6,30 @@ export async function verifyAdminCredentials(username: string, password: string)
   try {
     console.log('Iniciando verificação de credenciais...');
     console.log('Tentando login com:', { username });
-    console.log('Variáveis de ambiente:', {
+    
+    // Log all environment variables related to database
+    const envVars = {
+      DATABASE_URL: process.env.DATABASE_URL,
+      POSTGRES_URL: process.env.POSTGRES_URL,
+      POSTGRES_HOST: process.env.POSTGRES_HOST,
+      POSTGRES_USER: process.env.POSTGRES_USER,
+      POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
+      POSTGRES_DATABASE: process.env.POSTGRES_DATABASE
+    };
+    
+    console.log('Database environment variables:', {
       hasPostgresUrl: !!process.env.POSTGRES_URL,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
-      hasHost: !!process.env.POSTGRES_HOST,
-      hasUser: !!process.env.POSTGRES_USER
+      envVars: Object.fromEntries(
+        Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
+      )
     });
+    
+    // Override POSTGRES_URL with DATABASE_URL if available
+    if (process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+      process.env.POSTGRES_URL = process.env.DATABASE_URL;
+      console.log('Set POSTGRES_URL from DATABASE_URL');
+    }
     
     const result = await sql`
       SELECT username, password 
@@ -85,12 +103,30 @@ export async function changeAdminPassword(username: string, currentPassword: str
 export async function initializeDatabase() {
   try {
     console.log('Iniciando inicialização do banco de dados...');
-    console.log('Variáveis de ambiente:', {
+    
+    // Log all environment variables related to database
+    const envVars = {
+      DATABASE_URL: process.env.DATABASE_URL,
+      POSTGRES_URL: process.env.POSTGRES_URL,
+      POSTGRES_HOST: process.env.POSTGRES_HOST,
+      POSTGRES_USER: process.env.POSTGRES_USER,
+      POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
+      POSTGRES_DATABASE: process.env.POSTGRES_DATABASE
+    };
+    
+    console.log('Database environment variables:', {
       hasPostgresUrl: !!process.env.POSTGRES_URL,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
-      hasHost: !!process.env.POSTGRES_HOST,
-      hasUser: !!process.env.POSTGRES_USER
+      envVars: Object.fromEntries(
+        Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
+      )
     });
+    
+    // Override POSTGRES_URL with DATABASE_URL if available
+    if (process.env.DATABASE_URL && !process.env.POSTGRES_URL) {
+      process.env.POSTGRES_URL = process.env.DATABASE_URL;
+      console.log('Set POSTGRES_URL from DATABASE_URL');
+    }
 
     // Criar extensão uuid-ossp se não existir
     console.log('Criando extensão uuid-ossp...');

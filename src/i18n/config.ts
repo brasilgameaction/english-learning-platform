@@ -90,6 +90,12 @@ i18n
           'login.facebook': 'Entrar com Facebook',
           'login.github': 'Entrar com GitHub',
           'login.temporary': 'Entrar como Usuário Temporário',
+          'login.error.invalid': 'Usuário ou senha inválidos',
+          'login.error.general': 'Erro ao fazer login',
+          'login.admin.title': 'Login Administrativo',
+          'login.admin.username': 'Usuário',
+          'login.admin.password': 'Senha',
+          'login.admin.submit': 'Entrar',
 
           // Admin
           'admin.title': 'Painel Administrativo',
@@ -213,6 +219,12 @@ i18n
           'login.facebook': 'Login with Facebook',
           'login.github': 'Login with GitHub',
           'login.temporary': 'Login as Temporary User',
+          'login.error.invalid': 'Invalid username or password',
+          'login.error.general': 'Login error',
+          'login.admin.title': 'Admin Login',
+          'login.admin.username': 'Username',
+          'login.admin.password': 'Password',
+          'login.admin.submit': 'Login',
 
           // Admin
           'admin.title': 'Admin Panel',
@@ -336,6 +348,12 @@ i18n
           'login.facebook': 'Entrar con Facebook',
           'login.github': 'Entrar con GitHub',
           'login.temporary': 'Entrar como Usuario Temporal',
+          'login.error.invalid': 'Usuario o contraseña inválidos',
+          'login.error.general': 'Error al iniciar sesión',
+          'login.admin.title': 'Login Administrativo',
+          'login.admin.username': 'Usuario',
+          'login.admin.password': 'Contraseña',
+          'login.admin.submit': 'Entrar',
 
           // Admin
           'admin.title': 'Panel de Administración',

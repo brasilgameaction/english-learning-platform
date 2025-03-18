@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 const ADMIN_CREDENTIALS = {
   username: 'admin',
   // senha: admin123
-  password: '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy'
+  password: '$2b$10$9KLr1bIQr2UHaci1/rWU/OSUSz2pgbBbnHqgg8dBj03y98fRtaRcS'
 };
 
 // Verificar credenciais do admin

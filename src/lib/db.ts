@@ -4,7 +4,7 @@ import { sql } from '@vercel/postgres';
 // Verificar credenciais do admin
 export async function verifyAdminCredentials(username: string, password: string): Promise<boolean> {
   try {
-    // Log para debug
+    console.log('Iniciando verificação de credenciais...');
     console.log('Tentando login com:', { username });
     
     const result = await sql`
@@ -13,12 +13,19 @@ export async function verifyAdminCredentials(username: string, password: string)
       WHERE username = ${username}
     `;
 
+    console.log('Resultado da consulta:', { 
+      rowCount: result.rows.length,
+      hasRows: result.rows.length > 0 
+    });
+
     if (result.rows.length === 0) {
       console.log('Usuário não encontrado');
       return false;
     }
 
     const admin = result.rows[0];
+    console.log('Admin encontrado:', { username: admin.username });
+
     const isValid = await bcrypt.compare(password, admin.password);
     console.log('Senha válida:', isValid);
     
@@ -54,12 +61,16 @@ export async function changeAdminPassword(username: string, currentPassword: str
 // Inicializar banco de dados
 export async function initializeDatabase() {
   try {
+    console.log('Iniciando inicialização do banco de dados...');
+
     // Criar extensão uuid-ossp se não existir
+    console.log('Criando extensão uuid-ossp...');
     await sql`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
     `;
 
     // Criar tabela admin_users se não existir
+    console.log('Criando tabela admin_users...');
     await sql`
       CREATE TABLE IF NOT EXISTS admin_users (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -70,25 +81,50 @@ export async function initializeDatabase() {
     `;
 
     // Verificar se já existe um admin
+    console.log('Verificando se existe admin...');
     const result = await sql`
       SELECT COUNT(*) as count 
       FROM admin_users 
       WHERE username = 'admin'
     `;
 
+    console.log('Resultado da consulta:', { 
+      count: result.rows[0].count,
+      needsAdmin: result.rows[0].count === '0'
+    });
+
     // Se não existir admin, criar um
     if (result.rows[0].count === '0') {
+      console.log('Criando usuário admin...');
       const hashedPassword = await bcrypt.hash('admin123', 10);
       await sql`
         INSERT INTO admin_users (username, password)
         VALUES ('admin', ${hashedPassword})
       `;
       console.log('Admin user created successfully');
+    } else {
+      console.log('Admin user already exists');
     }
 
+    // Verificar se o admin foi criado corretamente
+    const adminCheck = await sql`
+      SELECT username, password 
+      FROM admin_users 
+      WHERE username = 'admin'
+    `;
+    console.log('Admin check:', { 
+      exists: adminCheck.rows.length > 0,
+      username: adminCheck.rows[0]?.username
+    });
+
     console.log('Database initialized successfully');
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error initializing database:', error);
+    console.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     throw error;
   }
 }

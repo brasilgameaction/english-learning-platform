@@ -1,13 +1,18 @@
 import bcrypt from 'bcryptjs';
-import { sql } from '@vercel/postgres';
+import { createPool } from '@vercel/postgres';
+
+const pool = createPool({
+  connectionString: process.env.DATABASE_URL
+});
 
 // Verificar credenciais do admin
 export async function verifyAdminCredentials(username: string, password: string): Promise<boolean> {
   try {
     console.log('Iniciando verificação de credenciais...');
     console.log('Tentando login com:', { username });
+    console.log('DATABASE_URL está definida:', !!process.env.DATABASE_URL);
     
-    const result = await sql`
+    const result = await pool.sql`
       SELECT username, password 
       FROM admin_users 
       WHERE username = ${username}
@@ -57,7 +62,7 @@ export async function changeAdminPassword(username: string, currentPassword: str
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await sql`
+    await pool.sql`
       UPDATE admin_users 
       SET password = ${hashedPassword}
       WHERE username = ${username}
@@ -74,22 +79,23 @@ export async function changeAdminPassword(username: string, currentPassword: str
 export async function initializeDatabase() {
   try {
     console.log('Iniciando inicialização do banco de dados...');
+    console.log('DATABASE_URL está definida:', !!process.env.DATABASE_URL);
 
     // Criar extensão uuid-ossp se não existir
     console.log('Criando extensão uuid-ossp...');
-    await sql`
+    await pool.sql`
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
     `;
 
     // Remover tabela existente
     console.log('Removendo tabela existente...');
-    await sql`
+    await pool.sql`
       DROP TABLE IF EXISTS admin_users
     `;
 
     // Criar tabela admin_users
     console.log('Criando tabela admin_users...');
-    await sql`
+    await pool.sql`
       CREATE TABLE admin_users (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
@@ -101,14 +107,14 @@ export async function initializeDatabase() {
     // Criar usuário admin
     console.log('Criando usuário admin...');
     const hashedPassword = await bcrypt.hash('admin123', 10);
-    await sql`
+    await pool.sql`
       INSERT INTO admin_users (username, password)
       VALUES ('admin', ${hashedPassword})
     `;
     console.log('Admin user created successfully');
 
     // Verificar se o admin foi criado corretamente
-    const adminCheck = await sql`
+    const adminCheck = await pool.sql`
       SELECT username, password 
       FROM admin_users 
       WHERE username = 'admin'

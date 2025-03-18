@@ -15,7 +15,11 @@ export async function verifyAdminCredentials(username: string, password: string)
 
     console.log('Resultado da consulta:', { 
       rowCount: result.rows.length,
-      hasRows: result.rows.length > 0 
+      hasRows: result.rows.length > 0,
+      firstRow: result.rows[0] ? {
+        username: result.rows[0].username,
+        passwordLength: result.rows[0].password?.length
+      } : null
     });
 
     if (result.rows.length === 0) {
@@ -24,10 +28,18 @@ export async function verifyAdminCredentials(username: string, password: string)
     }
 
     const admin = result.rows[0];
-    console.log('Admin encontrado:', { username: admin.username });
+    console.log('Admin encontrado:', { 
+      username: admin.username,
+      passwordLength: admin.password?.length,
+      hasPassword: !!admin.password
+    });
 
     const isValid = await bcrypt.compare(password, admin.password);
     console.log('Senha válida:', isValid);
+    console.log('Detalhes da comparação:', {
+      inputPassword: password,
+      hashedPasswordLength: admin.password?.length
+    });
     
     return isValid;
   } catch (error) {

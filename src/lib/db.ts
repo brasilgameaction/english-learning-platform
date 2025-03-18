@@ -69,10 +69,16 @@ export async function initializeDatabase() {
       CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
     `;
 
-    // Criar tabela admin_users se não existir
+    // Remover tabela existente
+    console.log('Removendo tabela existente...');
+    await sql`
+      DROP TABLE IF EXISTS admin_users
+    `;
+
+    // Criar tabela admin_users
     console.log('Criando tabela admin_users...');
     await sql`
-      CREATE TABLE IF NOT EXISTS admin_users (
+      CREATE TABLE admin_users (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
@@ -80,31 +86,14 @@ export async function initializeDatabase() {
       )
     `;
 
-    // Verificar se já existe um admin
-    console.log('Verificando se existe admin...');
-    const result = await sql`
-      SELECT COUNT(*) as count 
-      FROM admin_users 
-      WHERE username = 'admin'
+    // Criar usuário admin
+    console.log('Criando usuário admin...');
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    await sql`
+      INSERT INTO admin_users (username, password)
+      VALUES ('admin', ${hashedPassword})
     `;
-
-    console.log('Resultado da consulta:', { 
-      count: result.rows[0].count,
-      needsAdmin: result.rows[0].count === '0'
-    });
-
-    // Se não existir admin, criar um
-    if (result.rows[0].count === '0') {
-      console.log('Criando usuário admin...');
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      await sql`
-        INSERT INTO admin_users (username, password)
-        VALUES ('admin', ${hashedPassword})
-      `;
-      console.log('Admin user created successfully');
-    } else {
-      console.log('Admin user already exists');
-    }
+    console.log('Admin user created successfully');
 
     // Verificar se o admin foi criado corretamente
     const adminCheck = await sql`
@@ -114,7 +103,8 @@ export async function initializeDatabase() {
     `;
     console.log('Admin check:', { 
       exists: adminCheck.rows.length > 0,
-      username: adminCheck.rows[0]?.username
+      username: adminCheck.rows[0]?.username,
+      passwordLength: adminCheck.rows[0]?.password.length
     });
 
     console.log('Database initialized successfully');

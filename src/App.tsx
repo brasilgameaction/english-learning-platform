@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -11,6 +11,7 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
+import { initializeDatabase } from './lib/db';
 
 const theme = createTheme({
   palette: {
@@ -87,6 +88,11 @@ const theme = createTheme({
 });
 
 function App() {
+  useEffect(() => {
+    // Inicializar banco de dados
+    initializeDatabase().catch(console.error);
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

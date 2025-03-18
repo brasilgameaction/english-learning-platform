@@ -1,35 +1,35 @@
 import bcrypt from 'bcryptjs';
-import { sql } from '@vercel/postgres';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 
 // Verificar credenciais do admin
 export async function verifyAdminCredentials(username: string, password: string): Promise<boolean> {
   try {
     console.log('Iniciando verificação de credenciais...');
     console.log('Tentando login com:', { username });
-    console.log('Variáveis de ambiente:', {
-      hasConnectionString: !!process.env.DATABASE_URL,
-      hasHost: !!process.env.DATABASE_URL_PGHOST,
-      hasDatabase: !!process.env.DATABASE_URL_PGDATABASE,
-      hasUser: !!process.env.DATABASE_URL_PGUSER,
-      hasPassword: !!process.env.DATABASE_URL_PGPASSWORD
-    });
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Definida' : 'Não definida');
     
-    const result = await sql`
-      SELECT username, password 
-      FROM admin_users 
-      WHERE username = ${username}
-    `;
+    const result = await pool.query(
+      'SELECT username, password FROM admin_users WHERE username = $1',
+      [username]
+    );
 
     console.log('Resultado da consulta:', { 
-      rowCount: result.rows.length,
-      hasRows: result.rows.length > 0,
+      rowCount: result.rowCount,
+      hasRows: result.rowCount > 0,
       firstRow: result.rows[0] ? {
         username: result.rows[0].username,
         passwordLength: result.rows[0].password?.length
       } : null
     });
 
-    if (result.rows.length === 0) {
+    if (result.rowCount === 0) {
       console.log('Usuário não encontrado');
       return false;
     }
@@ -69,11 +69,10 @@ export async function changeAdminPassword(username: string, currentPassword: str
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await sql`
-      UPDATE admin_users 
-      SET password = ${hashedPassword}
-      WHERE username = ${username}
-    `;
+    await pool.query(
+      'UPDATE admin_users SET password = $1 WHERE username = $2',
+      [hashedPassword, username]
+    );
 
     return true;
   } catch (error: any) {
@@ -86,54 +85,43 @@ export async function changeAdminPassword(username: string, currentPassword: str
 export async function initializeDatabase() {
   try {
     console.log('Iniciando inicialização do banco de dados...');
-    console.log('Variáveis de ambiente:', {
-      hasConnectionString: !!process.env.DATABASE_URL,
-      hasHost: !!process.env.DATABASE_URL_PGHOST,
-      hasDatabase: !!process.env.DATABASE_URL_PGDATABASE,
-      hasUser: !!process.env.DATABASE_URL_PGUSER,
-      hasPassword: !!process.env.DATABASE_URL_PGPASSWORD
-    });
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Definida' : 'Não definida');
 
     // Criar extensão uuid-ossp se não existir
     console.log('Criando extensão uuid-ossp...');
-    await sql`
-      CREATE EXTENSION IF NOT EXISTS "uuid-ossp"
-    `;
+    await pool.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
 
     // Remover tabela existente
     console.log('Removendo tabela existente...');
-    await sql`
-      DROP TABLE IF EXISTS admin_users
-    `;
+    await pool.query('DROP TABLE IF EXISTS admin_users');
 
     // Criar tabela admin_users
     console.log('Criando tabela admin_users...');
-    await sql`
+    await pool.query(`
       CREATE TABLE admin_users (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       )
-    `;
+    `);
 
     // Criar usuário admin
     console.log('Criando usuário admin...');
     const hashedPassword = await bcrypt.hash('admin123', 10);
-    await sql`
-      INSERT INTO admin_users (username, password)
-      VALUES ('admin', ${hashedPassword})
-    `;
+    await pool.query(
+      'INSERT INTO admin_users (username, password) VALUES ($1, $2)',
+      ['admin', hashedPassword]
+    );
     console.log('Admin user created successfully');
 
     // Verificar se o admin foi criado corretamente
-    const adminCheck = await sql`
-      SELECT username, password 
-      FROM admin_users 
-      WHERE username = 'admin'
-    `;
+    const adminCheck = await pool.query(
+      'SELECT username, password FROM admin_users WHERE username = $1',
+      ['admin']
+    );
     console.log('Admin check:', { 
-      exists: adminCheck.rows.length > 0,
+      exists: adminCheck.rowCount > 0,
       username: adminCheck.rows[0]?.username,
       passwordLength: adminCheck.rows[0]?.password.length
     });

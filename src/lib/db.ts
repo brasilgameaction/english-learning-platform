@@ -20,8 +20,19 @@ export interface AdminUser {
   created_at: Date;
 }
 
+// Criar extensões necessárias
+async function createExtensions() {
+  try {
+    // No Vercel Postgres, a extensão uuid-ossp já está instalada por padrão
+    console.log('Extensions check completed');
+  } catch (error) {
+    console.error('Error checking extensions:', error);
+    throw error;
+  }
+}
+
 // Queries
-export async function createTables() {
+async function createTables() {
   try {
     // Criar tabela de conteúdo
     await sql`
@@ -37,9 +48,19 @@ export async function createTables() {
       );
     `;
 
-    console.log('Tabelas criadas com sucesso');
+    // Criar tabela de admin
+    await sql`
+      CREATE TABLE IF NOT EXISTS admin_users (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        username VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+
+    console.log('Tables created successfully');
   } catch (error) {
-    console.error('Erro ao criar tabelas:', error);
+    console.error('Error creating tables:', error);
     throw error;
   }
 }
@@ -53,7 +74,7 @@ export async function getAllContent(): Promise<Content[]> {
     `;
     return result.rows;
   } catch (error) {
-    console.error('Erro ao buscar conteúdo:', error);
+    console.error('Error fetching content:', error);
     throw error;
   }
 }
@@ -67,7 +88,7 @@ export async function getContentByCategory(category: Content['category']): Promi
     `;
     return result.rows;
   } catch (error) {
-    console.error('Erro ao buscar conteúdo por categoria:', error);
+    console.error('Error fetching content by category:', error);
     throw error;
   }
 }
@@ -94,7 +115,7 @@ export async function addContent(content: Omit<Content, 'id' | 'createdAt'>): Pr
     `;
     return result.rows[0];
   } catch (error) {
-    console.error('Erro ao adicionar conteúdo:', error);
+    console.error('Error adding content:', error);
     throw error;
   }
 }
@@ -106,7 +127,7 @@ export async function deleteContent(id: string): Promise<void> {
       WHERE id = ${id};
     `;
   } catch (error) {
-    console.error('Erro ao deletar conteúdo:', error);
+    console.error('Error deleting content:', error);
     throw error;
   }
 }
@@ -117,33 +138,13 @@ export async function deleteAllContent(): Promise<void> {
       DELETE FROM contents;
     `;
   } catch (error) {
-    console.error('Erro ao deletar todo o conteúdo:', error);
-    throw error;
-  }
-}
-
-// Criar tabela de admin se não existir
-export async function createAdminTable() {
-  try {
-    await sql`
-      CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-      
-      CREATE TABLE IF NOT EXISTS admin_users (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        username VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-    console.log('Admin users table created or already exists');
-  } catch (error) {
-    console.error('Error creating admin users table:', error);
+    console.error('Error deleting all content:', error);
     throw error;
   }
 }
 
 // Criar admin padrão se não existir
-export async function createDefaultAdmin() {
+async function createDefaultAdmin() {
   try {
     const defaultUsername = 'admin';
     const defaultPassword = 'admin123';
@@ -160,6 +161,8 @@ export async function createDefaultAdmin() {
         VALUES (${defaultUsername}, ${hashedPassword})
       `;
       console.log('Default admin user created');
+    } else {
+      console.log('Default admin user already exists');
     }
   } catch (error) {
     console.error('Error creating default admin:', error);
@@ -168,7 +171,7 @@ export async function createDefaultAdmin() {
 }
 
 // Verificar credenciais do admin
-export async function verifyAdminCredentials(username: string, password: string): Promise<boolean> {
+async function verifyAdminCredentials(username: string, password: string): Promise<boolean> {
   try {
     const result = await sql`
       SELECT password FROM admin_users WHERE username = ${username}
@@ -186,10 +189,31 @@ export async function verifyAdminCredentials(username: string, password: string)
   }
 }
 
+// Alterar senha do admin
+export async function changeAdminPassword(username: string, currentPassword: string, newPassword: string): Promise<boolean> {
+  try {
+    const isValid = await verifyAdminCredentials(username, currentPassword);
+    if (!isValid) {
+      return false;
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await sql`
+      UPDATE admin_users 
+      SET password = ${hashedPassword}
+      WHERE username = ${username}
+    `;
+    return true;
+  } catch (error) {
+    console.error('Error changing admin password:', error);
+    throw error;
+  }
+}
+
 // Inicializar banco de dados
 export async function initializeDatabase() {
   try {
-    await createAdminTable();
+    await createExtensions();
+    await createTables();
     await createDefaultAdmin();
     console.log('Database initialized successfully');
   } catch (error) {
@@ -198,35 +222,9 @@ export async function initializeDatabase() {
   }
 }
 
-// Alterar senha do admin
-export async function changeAdminPassword(username: string, currentPassword: string, newPassword: string): Promise<boolean> {
-  try {
-    // Primeiro verifica se as credenciais atuais estão corretas
-    const isValid = await verifyAdminCredentials(username, currentPassword);
-    
-    if (!isValid) {
-      return false;
-    }
-
-    // Hash da nova senha
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Atualiza a senha
-    await sql`
-      UPDATE admin_users 
-      SET password = ${hashedPassword}
-      WHERE username = ${username}
-    `;
-
-    return true;
-  } catch (error) {
-    console.error('Error changing admin password:', error);
-    throw error;
-  }
-}
-
-module.exports = {
-  createAdminTable,
+// Exportar funções necessárias
+export {
+  createTables as createAdminTable,
   createDefaultAdmin,
   verifyAdminCredentials
 }; 

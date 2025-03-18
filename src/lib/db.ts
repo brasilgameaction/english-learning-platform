@@ -1,10 +1,17 @@
-import { sql } from '@vercel/postgres';
+import { sql, db } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 
 // Verificar conexão com o banco de dados
 async function testDatabaseConnection() {
   console.log('Testing database connection...');
   try {
+    // Verificar se temos a variável de ambiente
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL environment variable is not set');
+    }
+    console.log('Database URL is configured');
+
+    // Testar a conexão
     const result = await sql`SELECT 1`;
     console.log('Database connection successful');
     return true;

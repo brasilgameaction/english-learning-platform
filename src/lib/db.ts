@@ -11,6 +11,7 @@ export async function verifyAdminCredentials(username: string, password: string)
     const envVars = {
       DATABASE_URL: process.env.DATABASE_URL,
       POSTGRES_URL: process.env.POSTGRES_URL,
+      POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
       POSTGRES_HOST: process.env.POSTGRES_HOST,
       POSTGRES_USER: process.env.POSTGRES_USER,
       POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
@@ -19,6 +20,7 @@ export async function verifyAdminCredentials(username: string, password: string)
     
     console.log('Database environment variables:', {
       hasPostgresUrl: !!process.env.POSTGRES_URL,
+      hasPostgresUrlNonPooling: !!process.env.POSTGRES_URL_NON_POOLING,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
@@ -27,7 +29,7 @@ export async function verifyAdminCredentials(username: string, password: string)
     
     // Create client with explicit configuration
     const client = createClient({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: process.env.POSTGRES_URL_NON_POOLING,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -90,7 +92,7 @@ export async function changeAdminPassword(username: string, currentPassword: str
     }
 
     const client = createClient({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: process.env.POSTGRES_URL_NON_POOLING,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -119,6 +121,7 @@ export async function initializeDatabase() {
     const envVars = {
       DATABASE_URL: process.env.DATABASE_URL,
       POSTGRES_URL: process.env.POSTGRES_URL,
+      POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
       POSTGRES_HOST: process.env.POSTGRES_HOST,
       POSTGRES_USER: process.env.POSTGRES_USER,
       POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
@@ -127,6 +130,7 @@ export async function initializeDatabase() {
     
     console.log('Database environment variables:', {
       hasPostgresUrl: !!process.env.POSTGRES_URL,
+      hasPostgresUrlNonPooling: !!process.env.POSTGRES_URL_NON_POOLING,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
@@ -134,7 +138,7 @@ export async function initializeDatabase() {
     });
 
     const client = createClient({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: process.env.POSTGRES_URL_NON_POOLING,
       ssl: { rejectUnauthorized: false }
     });
     

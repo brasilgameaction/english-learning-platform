@@ -1,6 +1,19 @@
 import { sql } from '@vercel/postgres';
 import bcrypt from 'bcryptjs';
 
+// Verificar conexão com o banco de dados
+async function testDatabaseConnection() {
+  console.log('Testing database connection...');
+  try {
+    const result = await sql`SELECT 1`;
+    console.log('Database connection successful');
+    return true;
+  } catch (error) {
+    console.error('Database connection error:', error);
+    throw new Error(`Failed to connect to database: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
 // Tipos
 export interface Content {
   id: string;
@@ -249,6 +262,9 @@ export async function changeAdminPassword(username: string, currentPassword: str
 export async function initializeDatabase() {
   console.log('Starting database initialization...');
   try {
+    console.log('Step 0: Testing database connection...');
+    await testDatabaseConnection();
+    
     console.log('Step 1: Checking extensions...');
     await createExtensions();
     

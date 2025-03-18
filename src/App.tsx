@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -11,8 +11,6 @@ import Admin from './pages/Admin';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './contexts/AuthContext';
-import { initializeDatabase } from './lib/db';
-import { CircularProgress, Box, Typography } from '@mui/material';
 
 const theme = createTheme({
   palette: {
@@ -89,69 +87,6 @@ const theme = createTheme({
 });
 
 function App() {
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        await initializeDatabase();
-      } catch (err) {
-        console.error('Failed to initialize database:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-        setError(`Database initialization failed: ${errorMessage}`);
-      } finally {
-        setIsInitializing(false);
-      }
-    };
-
-    init();
-  }, []);
-
-  if (isInitializing) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          gap: 2,
-        }}
-      >
-        <CircularProgress />
-        <Typography>Initializing database...</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          p: 3,
-          gap: 2,
-        }}
-      >
-        <Typography variant="h6" color="error" align="center" gutterBottom>
-          Application Error
-        </Typography>
-        <Typography color="error" align="center" sx={{ maxWidth: 600 }}>
-          {error}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" align="center">
-          Please check the console for more details or contact support.
-        </Typography>
-      </Box>
-    );
-  }
-
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

@@ -1,0 +1,1 @@
+npx vercel env add DATABASE_URL "postgres://neondb_owner:npg_xKdUstFA2W4P@ep-cool-cell-act3qnze-pooler.sa-east-1.aws.neon.tech/neondb?sslmode=require" production 

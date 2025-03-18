@@ -25,6 +25,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { dbService, Content } from '../services/DatabaseService';
+import ChangePasswordDialog from '../components/ChangePasswordDialog';
 
 const Admin = () => {
   const { t } = useTranslation();
@@ -41,6 +42,7 @@ const Admin = () => {
   const [selectedContent, setSelectedContent] = useState<Content | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [openChangePasswordDialog, setOpenChangePasswordDialog] = useState(false);
 
   useEffect(() => {
     loadContent();
@@ -120,9 +122,18 @@ const Admin = () => {
 
   return (
     <Container sx={{ py: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {t('admin.title')}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" component="h1">
+          {t('admin.title')}
+        </Typography>
+        <Button
+          variant="outlined"
+          color="primary"
+          onClick={() => setOpenChangePasswordDialog(true)}
+        >
+          {t('admin.changePassword.button')}
+        </Button>
+      </Box>
 
       {successMessage && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage('')}>
@@ -303,6 +314,11 @@ const Admin = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ChangePasswordDialog
+        open={openChangePasswordDialog}
+        onClose={() => setOpenChangePasswordDialog(false)}
+      />
     </Container>
   );
 };

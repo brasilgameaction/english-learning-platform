@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { verifyAdminCredentials, changeAdminPassword } from '../lib/db';
 
 interface AuthContextType {
   isAdmin: boolean;
   isLoading: boolean;
   currentUser: any; // You might want to define a proper User type
   adminLogin: (username: string, password: string) => Promise<boolean>;
+  changePassword: (username: string, currentPassword: string, newPassword: string) => Promise<boolean>;
   logout: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   loginWithFacebook: () => Promise<void>;
@@ -27,12 +29,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const adminLogin = async (username: string, password: string) => {
-    if (username === 'admin' && password === 'admin123') {
-      setIsAdmin(true);
-      localStorage.setItem('isAdmin', 'true');
-      return true;
+    try {
+      const isValid = await verifyAdminCredentials(username, password);
+      if (isValid) {
+        setIsAdmin(true);
+        localStorage.setItem('isAdmin', 'true');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Admin login error:', error);
+      return false;
     }
-    return false;
+  };
+
+  const changePassword = async (username: string, currentPassword: string, newPassword: string) => {
+    try {
+      return await changeAdminPassword(username, currentPassword, newPassword);
+    } catch (error) {
+      console.error('Change password error:', error);
+      return false;
+    }
   };
 
   const logout = async () => {
@@ -99,6 +116,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isLoading,
         currentUser,
         adminLogin,
+        changePassword,
         logout,
         loginWithGoogle,
         loginWithFacebook,

@@ -19,17 +19,22 @@ export async function verifyAdminCredentials(username: string, password: string)
     };
     
     console.log('Database environment variables:', {
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasPostgresUrl: !!process.env.DATABASE_URL_POSTGRES_URL,
       hasPostgresUrlNonPooling: !!process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
       )
     });
+
+    if (!process.env.DATABASE_URL_POSTGRES_URL) {
+      console.error('DATABASE_URL_POSTGRES_URL não está definida');
+      return false;
+    }
     
     // Create client with explicit configuration
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -91,8 +96,13 @@ export async function changeAdminPassword(username: string, currentPassword: str
       return false;
     }
 
+    if (!process.env.DATABASE_URL_POSTGRES_URL) {
+      console.error('DATABASE_URL_POSTGRES_URL não está definida');
+      return false;
+    }
+
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -129,16 +139,21 @@ export async function initializeDatabase() {
     };
     
     console.log('Database environment variables:', {
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasPostgresUrl: !!process.env.DATABASE_URL_POSTGRES_URL,
       hasPostgresUrlNonPooling: !!process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
       )
     });
 
+    if (!process.env.DATABASE_URL_POSTGRES_URL) {
+      console.error('DATABASE_URL_POSTGRES_URL não está definida');
+      throw new Error('DATABASE_URL_POSTGRES_URL não está definida');
+    }
+
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
       ssl: { rejectUnauthorized: false }
     });
     

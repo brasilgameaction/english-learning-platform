@@ -29,14 +29,15 @@ export async function verifyAdminCredentials(username: string, password: string)
       )
     });
 
-    if (!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL) {
-      console.error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
+    if (!process.env.DATABASE_URL_POSTGRES_URL) {
+      console.error('DATABASE_URL_POSTGRES_URL não está definida');
       return false;
     }
     
     // Create client with explicit configuration
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
+      ssl: { rejectUnauthorized: false }
     });
     
     console.log('Connecting to database...');
@@ -97,13 +98,14 @@ export async function changeAdminPassword(username: string, currentPassword: str
       return false;
     }
 
-    if (!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL) {
-      console.error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
+    if (!process.env.DATABASE_URL_POSTGRES_URL) {
+      console.error('DATABASE_URL_POSTGRES_URL não está definida');
       return false;
     }
 
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
+      ssl: { rejectUnauthorized: false }
     });
     
     await client.connect();
@@ -149,13 +151,14 @@ export async function initializeDatabase() {
       )
     });
 
-    if (!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL) {
-      console.error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
-      throw new Error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
+    if (!process.env.DATABASE_URL_POSTGRES_URL) {
+      console.error('DATABASE_URL_POSTGRES_URL não está definida');
+      throw new Error('DATABASE_URL_POSTGRES_URL não está definida');
     }
 
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
+      ssl: { rejectUnauthorized: false }
     });
     
     await client.connect();

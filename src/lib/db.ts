@@ -10,17 +10,17 @@ export async function verifyAdminCredentials(username: string, password: string)
     // Log all environment variables related to database
     const envVars = {
       DATABASE_URL: process.env.DATABASE_URL,
-      POSTGRES_URL: process.env.POSTGRES_URL,
-      POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
-      POSTGRES_HOST: process.env.POSTGRES_HOST,
-      POSTGRES_USER: process.env.POSTGRES_USER,
-      POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
-      POSTGRES_DATABASE: process.env.POSTGRES_DATABASE
+      DATABASE_URL_POSTGRES_URL: process.env.DATABASE_URL_POSTGRES_URL,
+      DATABASE_URL_POSTGRES_URL_NON_POOLING: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
+      DATABASE_URL_POSTGRES_HOST: process.env.DATABASE_URL_POSTGRES_HOST,
+      DATABASE_URL_POSTGRES_USER: process.env.DATABASE_URL_POSTGRES_USER,
+      DATABASE_URL_POSTGRES_PASSWORD: process.env.DATABASE_URL_POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
+      DATABASE_URL_POSTGRES_DATABASE: process.env.DATABASE_URL_POSTGRES_DATABASE
     };
     
     console.log('Database environment variables:', {
-      hasPostgresUrl: !!process.env.POSTGRES_URL,
-      hasPostgresUrlNonPooling: !!process.env.POSTGRES_URL_NON_POOLING,
+      hasPostgresUrl: !!process.env.DATABASE_URL_POSTGRES_URL,
+      hasPostgresUrlNonPooling: !!process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
@@ -29,7 +29,7 @@ export async function verifyAdminCredentials(username: string, password: string)
     
     // Create client with explicit configuration
     const client = createClient({
-      connectionString: process.env.POSTGRES_URL_NON_POOLING,
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -92,7 +92,7 @@ export async function changeAdminPassword(username: string, currentPassword: str
     }
 
     const client = createClient({
-      connectionString: process.env.POSTGRES_URL_NON_POOLING,
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -120,17 +120,17 @@ export async function initializeDatabase() {
     // Log all environment variables related to database
     const envVars = {
       DATABASE_URL: process.env.DATABASE_URL,
-      POSTGRES_URL: process.env.POSTGRES_URL,
-      POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
-      POSTGRES_HOST: process.env.POSTGRES_HOST,
-      POSTGRES_USER: process.env.POSTGRES_USER,
-      POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
-      POSTGRES_DATABASE: process.env.POSTGRES_DATABASE
+      DATABASE_URL_POSTGRES_URL: process.env.DATABASE_URL_POSTGRES_URL,
+      DATABASE_URL_POSTGRES_URL_NON_POOLING: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
+      DATABASE_URL_POSTGRES_HOST: process.env.DATABASE_URL_POSTGRES_HOST,
+      DATABASE_URL_POSTGRES_USER: process.env.DATABASE_URL_POSTGRES_USER,
+      DATABASE_URL_POSTGRES_PASSWORD: process.env.DATABASE_URL_POSTGRES_PASSWORD ? '[REDACTED]' : undefined,
+      DATABASE_URL_POSTGRES_DATABASE: process.env.DATABASE_URL_POSTGRES_DATABASE
     };
     
     console.log('Database environment variables:', {
-      hasPostgresUrl: !!process.env.POSTGRES_URL,
-      hasPostgresUrlNonPooling: !!process.env.POSTGRES_URL_NON_POOLING,
+      hasPostgresUrl: !!process.env.DATABASE_URL_POSTGRES_URL,
+      hasPostgresUrlNonPooling: !!process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
@@ -138,7 +138,7 @@ export async function initializeDatabase() {
     });
 
     const client = createClient({
-      connectionString: process.env.POSTGRES_URL_NON_POOLING,
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       ssl: { rejectUnauthorized: false }
     });
     
@@ -213,4 +213,4 @@ export interface AdminUser {
   username: string;
   password: string;
   created_at: Date;
-}
+} 

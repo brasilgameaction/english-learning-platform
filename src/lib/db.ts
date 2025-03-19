@@ -11,6 +11,7 @@ export async function verifyAdminCredentials(username: string, password: string)
     const envVars = {
       DATABASE_URL: process.env.DATABASE_URL,
       DATABASE_URL_POSTGRES_URL: process.env.DATABASE_URL_POSTGRES_URL,
+      DATABASE_URL_POSTGRES_URL_NO_SSL: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL,
       DATABASE_URL_POSTGRES_URL_NON_POOLING: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       DATABASE_URL_POSTGRES_HOST: process.env.DATABASE_URL_POSTGRES_HOST,
       DATABASE_URL_POSTGRES_USER: process.env.DATABASE_URL_POSTGRES_USER,
@@ -21,21 +22,21 @@ export async function verifyAdminCredentials(username: string, password: string)
     console.log('Database environment variables:', {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasPostgresUrl: !!process.env.DATABASE_URL_POSTGRES_URL,
+      hasPostgresUrlNoSsl: !!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL,
       hasPostgresUrlNonPooling: !!process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
       )
     });
 
-    if (!process.env.DATABASE_URL_POSTGRES_URL) {
-      console.error('DATABASE_URL_POSTGRES_URL não está definida');
+    if (!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL) {
+      console.error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
       return false;
     }
     
     // Create client with explicit configuration
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
-      ssl: { rejectUnauthorized: false }
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL
     });
     
     console.log('Connecting to database...');
@@ -96,14 +97,13 @@ export async function changeAdminPassword(username: string, currentPassword: str
       return false;
     }
 
-    if (!process.env.DATABASE_URL_POSTGRES_URL) {
-      console.error('DATABASE_URL_POSTGRES_URL não está definida');
+    if (!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL) {
+      console.error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
       return false;
     }
 
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
-      ssl: { rejectUnauthorized: false }
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL
     });
     
     await client.connect();
@@ -131,6 +131,7 @@ export async function initializeDatabase() {
     const envVars = {
       DATABASE_URL: process.env.DATABASE_URL,
       DATABASE_URL_POSTGRES_URL: process.env.DATABASE_URL_POSTGRES_URL,
+      DATABASE_URL_POSTGRES_URL_NO_SSL: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL,
       DATABASE_URL_POSTGRES_URL_NON_POOLING: process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       DATABASE_URL_POSTGRES_HOST: process.env.DATABASE_URL_POSTGRES_HOST,
       DATABASE_URL_POSTGRES_USER: process.env.DATABASE_URL_POSTGRES_USER,
@@ -141,20 +142,20 @@ export async function initializeDatabase() {
     console.log('Database environment variables:', {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       hasPostgresUrl: !!process.env.DATABASE_URL_POSTGRES_URL,
+      hasPostgresUrlNoSsl: !!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL,
       hasPostgresUrlNonPooling: !!process.env.DATABASE_URL_POSTGRES_URL_NON_POOLING,
       envVars: Object.fromEntries(
         Object.entries(envVars).map(([key, value]) => [key, value ? 'SET' : 'NOT SET'])
       )
     });
 
-    if (!process.env.DATABASE_URL_POSTGRES_URL) {
-      console.error('DATABASE_URL_POSTGRES_URL não está definida');
-      throw new Error('DATABASE_URL_POSTGRES_URL não está definida');
+    if (!process.env.DATABASE_URL_POSTGRES_URL_NO_SSL) {
+      console.error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
+      throw new Error('DATABASE_URL_POSTGRES_URL_NO_SSL não está definida');
     }
 
     const client = createClient({
-      connectionString: process.env.DATABASE_URL_POSTGRES_URL,
-      ssl: { rejectUnauthorized: false }
+      connectionString: process.env.DATABASE_URL_POSTGRES_URL_NO_SSL
     });
     
     await client.connect();
